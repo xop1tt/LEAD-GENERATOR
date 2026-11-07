@@ -1,0 +1,248 @@
+<UserControl
+    x:Class="Customers.Ui.LeadsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Customers.Ui"
+    xmlns:p="using:Customers.Presentation">
+
+    <UserControl.Resources>
+        <!-- Строка таблицы: оценка, название с подробностями, источник, дата, избранное. -->
+        <DataTemplate x:Key="NormalRow" x:DataType="p:LeadRow">
+            <Grid ColumnSpacing="10" Padding="4,6" MinHeight="54">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Width="42" Height="26" CornerRadius="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Background="{x:Bind local:Fmt.LevelBrush(Level), Mode=OneWay}"
+                        ToolTipService.ToolTip="{x:Bind RelevanceTitle, Mode=OneWay}">
+                    <TextBlock Text="{x:Bind ScoreText, Mode=OneWay}" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <Grid ColumnSpacing="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse Width="8" Height="8" Fill="{ThemeResource AccentFillColorDefaultBrush}" VerticalAlignment="Center"
+                                 Visibility="{x:Bind local:Fmt.Vis(IsNew), Mode=OneWay}" ToolTipService.ToolTip="Новый лид" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind Title, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                    </Grid>
+                    <TextBlock Text="{x:Bind Details, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxLines="1" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{x:Bind SourceTitle, Mode=OneWay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                <TextBlock Grid.Column="3" Text="{x:Bind FoundText, Mode=OneWay}" VerticalAlignment="Center" Style="{StaticResource MutedTextStyle}" TextWrapping="NoWrap" />
+                <Button Grid.Column="4" Background="Transparent" BorderThickness="0" Padding="8" VerticalAlignment="Center" Click="OnRowStarClick"
+                        Tag="{x:Bind Id}" ToolTipService.ToolTip="Избранное" AutomationProperties.Name="Избранное">
+                    <FontIcon Glyph="{x:Bind FavoriteGlyph, Mode=OneWay}" FontSize="14" />
+                </Button>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CompactRow" x:DataType="p:LeadRow">
+            <Grid ColumnSpacing="10" Padding="4,2" MinHeight="36">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Width="42" Height="22" CornerRadius="11" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Background="{x:Bind local:Fmt.LevelBrush(Level), Mode=OneWay}">
+                    <TextBlock Text="{x:Bind ScoreText, Mode=OneWay}" Foreground="White" FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <Grid Grid.Column="1" ColumnSpacing="6" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Ellipse Width="8" Height="8" Fill="{ThemeResource AccentFillColorDefaultBrush}" VerticalAlignment="Center"
+                             Visibility="{x:Bind local:Fmt.Vis(IsNew), Mode=OneWay}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind Title, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                </Grid>
+                <TextBlock Grid.Column="2" Text="{x:Bind SourceTitle, Mode=OneWay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                <TextBlock Grid.Column="3" Text="{x:Bind FoundText, Mode=OneWay}" VerticalAlignment="Center" Style="{StaticResource MutedTextStyle}" TextWrapping="NoWrap" />
+                <Button Grid.Column="4" Background="Transparent" BorderThickness="0" Padding="6" VerticalAlignment="Center" Click="OnRowStarClick"
+                        Tag="{x:Bind Id}" ToolTipService.ToolTip="Избранное" AutomationProperties.Name="Избранное">
+                    <FontIcon Glyph="{x:Bind FavoriteGlyph, Mode=OneWay}" FontSize="13" />
+                </Button>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid x:Name="Layout" Padding="16,4,16,16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="320" />
+            <ColumnDefinition x:Name="SplitterColumn" Width="14" />
+            <ColumnDefinition x:Name="InspectorColumn" Width="400" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Список лидов -->
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+                <TextBlock x:Name="SectionTitle" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock x:Name="CountText" Style="{StaticResource MutedTextStyle}" VerticalAlignment="Bottom" Margin="0,0,0,6" />
+            </StackPanel>
+
+            <Grid Grid.Row="1" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="160" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <AutoSuggestBox x:Name="SearchBox" Grid.Column="0" PlaceholderText="Поиск по названию, описанию, контактам (Ctrl+F)" QueryIcon="Find"
+                                TextChanged="OnSearchTextChanged" QuerySubmitted="OnSearchSubmitted" AutomationProperties.Name="Поиск по лидам" />
+
+                <Button x:Name="FindButton" Grid.Column="1" Style="{StaticResource AccentButtonStyle}" Click="OnFindClick" MinHeight="32"
+                        ToolTipService.ToolTip="Запустить поиск по включённым источникам (Ctrl+R)">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon x:Name="FindGlyph" Glyph="&#xE721;" FontSize="14" />
+                        <TextBlock x:Name="FindText" Text="Найти лиды" />
+                    </StackPanel>
+                </Button>
+
+                <CommandBar x:Name="Commands" Grid.Column="2" DefaultLabelPosition="Collapsed" Background="Transparent" OverflowButtonVisibility="Auto" HorizontalAlignment="Right">
+                    <AppBarButton x:Name="FilterButton" Label="Фильтры" ToolTipService.ToolTip="Фильтры">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE71C;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout x:Name="FilterFlyout" Opening="OnFilterFlyoutOpening">
+                                <StackPanel Width="320" Spacing="12">
+                                    <TextBlock Text="Фильтры" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <ComboBox x:Name="KindCombo" Header="Тип" HorizontalAlignment="Stretch" SelectionChanged="OnFilterChanged" />
+                                    <ComboBox x:Name="SourceCombo" Header="Источник" HorizontalAlignment="Stretch" SelectionChanged="OnFilterChanged" />
+                                    <ComboBox x:Name="RegionCombo" Header="Регион" HorizontalAlignment="Stretch" SelectionChanged="OnFilterChanged" />
+                                    <Slider x:Name="ScoreSlider" Header="Минимальная оценка" Minimum="0" Maximum="100" StepFrequency="5" TickFrequency="25" TickPlacement="BottomRight" ValueChanged="OnScoreSliderChanged" />
+                                    <ToggleSwitch x:Name="HideRejectedSwitch" Header="Скрывать неподходящие" OnContent="Скрыты" OffContent="Показаны" Toggled="OnHideRejectedToggled" />
+                                    <Button Content="Сбросить фильтры" Click="OnResetFiltersClick" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+                    <AppBarButton x:Name="SortButton" Label="Сортировка" ToolTipService.ToolTip="Сортировка">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8CB;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout x:Name="SortMenu" Opening="OnSortMenuOpening" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+                    <AppBarSeparator />
+                    <AppBarButton x:Name="FavoriteButton" Label="Избранное" ToolTipService.ToolTip="В избранное / убрать из избранного" Click="OnFavoriteClick">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE734;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                    <AppBarButton x:Name="ArchiveButton" Label="Архив" ToolTipService.ToolTip="В архив / из архива" Click="OnArchiveClick">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                    <AppBarButton x:Name="ExcludeButton" Label="Исключить" ToolTipService.ToolTip="Исключить домен, телефон, почту или название">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE711;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout x:Name="ExcludeMenu" Opening="OnExcludeMenuOpening" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+                    <AppBarButton x:Name="ExportButton" Label="Экспорт" ToolTipService.ToolTip="Экспорт в CSV или JSON" Click="OnExportClick">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE896;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                    <AppBarToggleButton x:Name="InspectorToggle" Label="Карточка" ToolTipService.ToolTip="Показать или скрыть карточку лида (Ctrl+I)" Click="OnInspectorToggleClick">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE89F;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+                    <CommandBar.SecondaryCommands>
+                        <AppBarButton Label="Передать выбранные в CRM…" Click="OnCrmClick" />
+                        <AppBarButton Label="Отметить всё прочитанным" Click="OnMarkAllSeenClick" />
+                        <AppBarButton Label="Импортировать лиды из файла…" Click="OnImportClick" />
+                        <AppBarSeparator />
+                        <AppBarButton Label="Удалить выбранные" Click="OnDeleteClick" />
+                    </CommandBar.SecondaryCommands>
+                </CommandBar>
+            </Grid>
+
+            <!-- Ход поиска и итог последнего запуска -->
+            <StackPanel Grid.Row="2" Spacing="8">
+                <Border x:Name="ProgressCard" Style="{StaticResource CardStyle}" Padding="12" Visibility="Collapsed">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="ProgressText" TextWrapping="Wrap" />
+                            <ProgressBar IsIndeterminate="True" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Остановить" Click="OnFindClick" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+                <InfoBar x:Name="ReportBar" IsOpen="False" IsClosable="True" />
+            </StackPanel>
+
+            <!-- Таблица -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <ScrollViewer x:Name="TableScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto" SizeChanged="OnTableScrollSizeChanged">
+                        <Grid x:Name="Table" MinWidth="560">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid x:Name="Header" Padding="12,4,12,4" ColumnSpacing="10" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="40" />
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="HeadScore" Grid.Column="0" Tag="Score" Click="OnHeaderClick" Background="Transparent" BorderThickness="0" Padding="4,2" ToolTipService.ToolTip="Сортировать по оценке" />
+                                <Button x:Name="HeadTitle" Grid.Column="1" Tag="Title" Click="OnHeaderClick" Background="Transparent" BorderThickness="0" Padding="4,2" ToolTipService.ToolTip="Сортировать по названию" />
+                                <Button x:Name="HeadSource" Grid.Column="2" Tag="Source" Click="OnHeaderClick" Background="Transparent" BorderThickness="0" Padding="4,2" ToolTipService.ToolTip="Сортировать по источнику" />
+                                <Button x:Name="HeadFound" Grid.Column="3" Tag="Found" Click="OnHeaderClick" Background="Transparent" BorderThickness="0" Padding="4,2" ToolTipService.ToolTip="Сортировать по дате находки" />
+                            </Grid>
+                            <ListView x:Name="List" Grid.Row="1" SelectionMode="Extended" IsItemClickEnabled="False" ItemTemplate="{StaticResource NormalRow}"
+                                      SelectionChanged="OnListSelectionChanged" KeyDown="OnListKeyDown" RightTapped="OnListRightTapped" DoubleTapped="OnListDoubleTapped"
+                                      AutomationProperties.Name="Таблица лидов">
+                                <ListView.ContextFlyout>
+                                    <MenuFlyout x:Name="RowMenu" Opening="OnRowMenuOpening" />
+                                </ListView.ContextFlyout>
+                            </ListView>
+                        </Grid>
+                    </ScrollViewer>
+
+                    <!-- Пустое состояние -->
+                    <StackPanel x:Name="EmptyPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="360" Visibility="Collapsed" Padding="24">
+                        <FontIcon x:Name="EmptyIcon" Glyph="&#xE721;" FontSize="40" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock x:Name="EmptyTitle" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+                        <TextBlock x:Name="EmptyText" Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" TextAlignment="Center" />
+                        <Button x:Name="EmptyAction" HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}" Click="OnEmptyActionClick" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <local:ResizeThumb x:Name="InspectorSplitter" Grid.Column="1" ToolTipService.ToolTip="Потяните, чтобы изменить ширину карточки. Двойной щелчок — ширина по умолчанию." />
+
+        <!-- Карточка лида -->
+        <Border x:Name="InspectorHost" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0" />
+    </Grid>
+</UserControl>

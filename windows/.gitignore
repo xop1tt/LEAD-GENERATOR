@@ -1,0 +1,16 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage/
+artifacts/
+publish/
+*.binlog
+# Пользовательские данные и секреты не должны попадать в репозиторий
+*.db
+*.db-wal
+*.db-shm
+*.pfx
+*.snk

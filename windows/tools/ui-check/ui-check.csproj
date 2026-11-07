@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Проверка C#-кода интерфейса на Linux (XAML-компилятор WinUI там не работает). Настоящая сборка — Customers.App в CI на Windows.
+    Запуск: tools/ui-check/check.sh
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RootNamespace>Customers.Ui</RootNamespace>
+    <OutputType>Library</OutputType>
+    <UseWinUI>false</UseWinUI>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>$(NoWarn);CS0169;CS0649;CS8618</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_CHECK</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
+    <ProjectReference Include="..\..\src\Customers.Presentation\Customers.Presentation.csproj" />
+    <Compile Include="..\..\src\Customers.App\**\*.cs" Exclude="..\..\src\Customers.App\obj\**;..\..\src\Customers.App\bin\**" />
+    <Compile Include="obj\stubs.g.cs" />
+  </ItemGroup>
+</Project>

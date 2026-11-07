@@ -1,0 +1,56 @@
+<Window
+    x:Class="Customers.Ui.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Customers">
+
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок окна с собственным содержимым. Кнопки сворачивания и закрытия рисует сама Windows. -->
+        <Grid x:Name="TitleBar" Grid.Row="0" Height="48">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftInset" Width="0" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition x:Name="RightInset" Width="0" />
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="PaneButton" Grid.Column="1" Width="44" Height="36" Margin="4,0,0,0" Padding="0" Background="Transparent" BorderThickness="0"
+                    Click="OnPaneButtonClick" ToolTipService.ToolTip="Показать или скрыть левую панель (Ctrl+B)"
+                    AutomationProperties.Name="Показать или скрыть левую панель">
+                <FontIcon Glyph="&#xE700;" FontSize="16" />
+            </Button>
+            <Image Grid.Column="2" Source="Assets/AppIcon.png" Width="18" Height="18" Margin="8,0,0,0" />
+            <TextBlock x:Name="TitleText" Grid.Column="3" Text="Customers" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" Margin="10,0,0,0" />
+
+            <Button x:Name="SyncButton" Grid.Column="5" Height="32" Margin="0,0,4,0" Padding="10,0" Background="Transparent" BorderThickness="0"
+                    Visibility="Collapsed" Click="OnSyncClick" ToolTipService.ToolTip="Синхронизировать сейчас">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon x:Name="SyncGlyph" Glyph="&#xE895;" FontSize="14" />
+                    <TextBlock x:Name="SyncText" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="AccountButton" Grid.Column="6" Height="32" Margin="0,0,8,0" Padding="10,0" Background="Transparent" BorderThickness="0"
+                    Visibility="Collapsed" AutomationProperties.Name="Учётная запись">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE77B;" FontSize="14" />
+                    <TextBlock x:Name="AccountText" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" MaxWidth="220" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Button.Flyout>
+                    <MenuFlyout x:Name="AccountMenu" Opening="OnAccountMenuOpening" />
+                </Button.Flyout>
+            </Button>
+        </Grid>
+
+        <ContentControl x:Name="Host" Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+    </Grid>
+</Window>

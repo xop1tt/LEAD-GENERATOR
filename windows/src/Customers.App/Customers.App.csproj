@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Windows 10 версии 1809 и новее (в том числе Windows 11). -->
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <RootNamespace>Customers.Ui</RootNamespace>
+    <AssemblyName>Customers</AssemblyName>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Description>Customers — поиск заказов и потенциальных клиентов</Description>
+    <AssemblyTitle>Customers</AssemblyTitle>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <!-- Без MSIX и без установки среды выполнения: всё нужное лежит рядом с приложением. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SatelliteResourceLanguages>en;ru</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1721" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Customers.Presentation\Customers.Presentation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Адрес и публичный ключ Supabase берутся при сборке из переменных окружения (в CI — из переменных репозитория,
+       как у macOS-версии). Без них приложение работает только с локальными учётными записями. -->
+  <ItemGroup>
+    <AssemblyMetadata Include="SupabaseUrl" Value="$(SUPABASE_URL)" />
+    <AssemblyMetadata Include="SupabaseAnonKey" Value="$(SUPABASE_ANON_KEY)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,87 @@
+name: Windows app
+
+# Windows-версия (windows/): ядро и тесты проверяются на Windows и на Linux, интерфейс WinUI 3 собирается
+# только на Windows. Для macOS-проверок этот файл ничего не меняет: пути не пересекаются (macos/** и windows/**).
+on:
+  push:
+    branches: [main]
+    paths: ["windows/**", ".github/workflows/windows.yml"]
+  pull_request:
+    paths: ["windows/**", ".github/workflows/windows.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-app-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  core:
+    name: Core and view-model tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: windows/global.json
+
+      - name: Версии
+        run: dotnet --info
+
+      # Форматирование проверяется один раз (на Linux); предупреждения компилятора считаются ошибками (Directory.Build.props).
+      - name: Format check
+        if: runner.os == 'Linux'
+        run: |
+          dotnet format whitespace src/Customers.Core --verify-no-changes
+          dotnet format whitespace tests/Customers.Core.Tests --verify-no-changes
+          dotnet format whitespace src/Customers.Presentation --verify-no-changes
+          dotnet format whitespace tests/Customers.Presentation.Tests --verify-no-changes
+
+      - name: Restore
+        run: |
+          dotnet restore tests/Customers.Core.Tests
+          dotnet restore tests/Customers.Presentation.Tests
+
+      - name: Build (warnings are errors)
+        run: |
+          dotnet build src/Customers.Core -c Release --no-restore
+          dotnet build tests/Customers.Core.Tests -c Release --no-restore
+          dotnet build src/Customers.Presentation -c Release --no-restore
+          dotnet build tests/Customers.Presentation.Tests -c Release --no-restore
+
+      - name: Tests (Core)
+        run: >
+          dotnet test tests/Customers.Core.Tests -c Release --no-build
+          --logger "trx;LogFileName=core-${{ runner.os }}.trx"
+          --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Tests (Presentation)
+        run: >
+          dotnet test tests/Customers.Presentation.Tests -c Release --no-build
+          --logger "trx;LogFileName=presentation-${{ runner.os }}.trx"
+          --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Результаты тестов
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: core-test-results-${{ runner.os }}
+          path: windows/TestResults
+          retention-days: 14

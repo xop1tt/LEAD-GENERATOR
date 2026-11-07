@@ -1,0 +1,101 @@
+<UserControl
+    x:Class="Customers.Ui.LeadInspector"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <!-- Ничего не выбрано -->
+        <StackPanel x:Name="NoneState" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" Padding="24" MaxWidth="320">
+            <FontIcon Glyph="&#xE8A5;" FontSize="36" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <TextBlock Text="Выберите лид" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" />
+            <TextBlock Text="Здесь появятся оценка и её причины, контакты, заметка, черновик обращения и история." Style="{StaticResource MutedTextStyle}" TextAlignment="Center" />
+        </StackPanel>
+
+        <!-- Выбрано несколько -->
+        <StackPanel x:Name="MultiState" Visibility="Collapsed" Padding="20" Spacing="12" VerticalAlignment="Center">
+            <TextBlock x:Name="MultiTitle" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" />
+            <TextBlock Text="Действия применятся ко всем выбранным лидам." Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" />
+            <Button x:Name="MultiFavorite" Content="В избранное / убрать" HorizontalAlignment="Stretch" Click="OnMultiFavoriteClick" />
+            <Button x:Name="MultiArchive" Content="В архив / вернуть" HorizontalAlignment="Stretch" Click="OnMultiArchiveClick" />
+            <Button Content="Экспортировать…" HorizontalAlignment="Stretch" Click="OnMultiExportClick" />
+            <Button Content="Передать в CRM…" HorizontalAlignment="Stretch" Click="OnMultiCrmClick" />
+            <Button Content="Удалить" HorizontalAlignment="Stretch" Click="OnMultiDeleteClick" />
+        </StackPanel>
+
+        <!-- Один лид -->
+        <ScrollViewer x:Name="SingleState" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="16" Spacing="14">
+                <TextBlock x:Name="TitleText" Style="{StaticResource SubtitleTextBlockStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap" />
+                <StackPanel x:Name="Chips" Orientation="Horizontal" Spacing="6" />
+
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Button x:Name="OpenButton" Style="{StaticResource AccentButtonStyle}" Click="OnOpenClick" ToolTipService.ToolTip="Открыть страницу объявления (Enter в таблице)">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE774;" FontSize="14" />
+                            <TextBlock Text="Открыть" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="CopyLinkButton" Click="OnCopyLinkClick" ToolTipService.ToolTip="Копировать ссылку" AutomationProperties.Name="Копировать ссылку">
+                        <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                    </Button>
+                    <Button x:Name="FavoriteButton" Click="OnFavoriteClick" ToolTipService.ToolTip="Избранное" AutomationProperties.Name="Избранное">
+                        <FontIcon x:Name="FavoriteGlyph" Glyph="&#xE734;" FontSize="14" />
+                    </Button>
+                    <Button x:Name="ArchiveButton" Click="OnArchiveClick" ToolTipService.ToolTip="В архив" AutomationProperties.Name="В архив">
+                        <FontIcon Glyph="&#xE8B7;" FontSize="14" />
+                    </Button>
+                    <Button x:Name="ExcludeButton" ToolTipService.ToolTip="Исключить домен, телефон, почту или название" AutomationProperties.Name="Исключить">
+                        <FontIcon Glyph="&#xE711;" FontSize="14" />
+                        <Button.Flyout>
+                            <MenuFlyout x:Name="ExcludeMenu" Opening="OnExcludeMenuOpening" />
+                        </Button.Flyout>
+                    </Button>
+                    <Button x:Name="DeleteButton" Click="OnDeleteClick" ToolTipService.ToolTip="Удалить" AutomationProperties.Name="Удалить">
+                        <FontIcon Glyph="&#xE74D;" FontSize="14" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Данные" Style="{StaticResource SectionTitleStyle}" />
+                    <StackPanel x:Name="DataPanel" Spacing="2" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="ScoreTitle" Style="{StaticResource SectionTitleStyle}" />
+                    <StackPanel x:Name="ReasonsPanel" Spacing="2" />
+                </StackPanel>
+
+                <StackPanel x:Name="DescriptionSection" Spacing="4">
+                    <TextBlock Text="Описание" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock x:Name="DescriptionText" IsTextSelectionEnabled="True" TextWrapping="Wrap" MaxLines="14" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Заметка" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBox x:Name="NoteBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="220" PlaceholderText="Например: позвонил, перезвонить в пятницу"
+                             TextChanged="OnNoteChanged" LostFocus="OnNoteLostFocus" AutomationProperties.Name="Заметка" />
+                </StackPanel>
+
+                <Expander x:Name="FactsExpander" Header="Факты и предположения" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <StackPanel x:Name="FactsPanel" Spacing="2" />
+                </Expander>
+
+                <Expander x:Name="DraftExpander" Header="Черновик первого обращения" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <StackPanel Spacing="8">
+                        <ComboBox x:Name="ChannelCombo" Header="Канал" HorizontalAlignment="Stretch" SelectionChanged="OnChannelChanged" />
+                        <TextBox x:Name="DraftBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" MaxHeight="300" AutomationProperties.Name="Черновик" />
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="Шаблон без ИИ. Текст можно править; отправка только вручную." />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Копировать" Click="OnCopyDraftClick" />
+                            <Button x:Name="DraftActionButton" Click="OnDraftActionClick" />
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
+
+                <Expander x:Name="HistoryExpander" Header="История" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <StackPanel x:Name="HistoryPanel" Spacing="4" />
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
